@@ -1,16 +1,16 @@
-use core::ops::{Add, Mul};
+use grid::{Letter, COLS, NUMBERS, ROWS};
 
-use grid::*;
-
-fn get(Cell(row, col): Cell) -> Option<Letter> {
-    if row < 0 || col < 0 || row >= ROWS || col >= COLS {
-        None
+const fn get(Cell(row, col): Cell) -> Option<Letter> {
+    if row >= 0 && col >= 0 && row < ROWS && col < COLS {
+        // row and col are guaranteed to be positive because of the check above
+        #[allow(clippy::cast_sign_loss)]
+        Some(NUMBERS[((row * COLS) as usize) + col as usize])
     } else {
-        NUMBERS.get(((row * COLS) as usize) + col as usize).copied()
+        None
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy)]
 enum Direction {
     Up,
     Down,
@@ -22,19 +22,31 @@ enum Direction {
     DownRight,
 }
 
-#[derive(Clone, Copy, Debug)]
-struct Cell(i32, i32);
-
-impl Mul<i32> for Cell {
-    type Output = Self;
-    fn mul(self, rhs: i32) -> Self::Output {
-        Self(self.0 * rhs, self.1 * rhs)
+impl Direction {
+    const fn str(self) -> &'static str {
+        match self {
+            Self::Up => "Up",
+            Self::Down => "Down",
+            Self::Left => "Left",
+            Self::Right => "Right",
+            Self::UpLeft => "UpLeft",
+            Self::UpRight => "UpRight",
+            Self::DownLeft => "DownLeft",
+            Self::DownRight => "DownRight",
+        }
     }
 }
 
-impl Add for Cell {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self::Output {
+#[derive(Clone, Copy)]
+struct Cell(i8, i8);
+
+// const traits are still experimental at the time of writing
+impl Cell {
+    const fn mul_scalar(self, rhs: i8) -> Self {
+        Self(self.0 * rhs, self.1 * rhs)
+    }
+
+    const fn add_cell(self, rhs: Self) -> Self {
         Self(self.0 + rhs.0, self.1 + rhs.1)
     }
 }
@@ -42,8 +54,8 @@ impl Add for Cell {
 #[derive(Clone, Copy)]
 struct Line(Cell, Direction);
 
-static NEIGHBORS: [Line; 8] = {
-    use Direction::*;
+const NEIGHBORS: [Line; 8] = {
+    use Direction::{Down, DownLeft, DownRight, Left, Right, Up, UpLeft, UpRight};
     [
         Line(Cell(-1, 0), Up),
         Line(Cell(1, 0), Down),
@@ -56,39 +68,60 @@ static NEIGHBORS: [Line; 8] = {
     ]
 };
 
-fn main() {
-    for row in 0..ROWS {
-        for col in 0..COLS {
+const fn eval(c: Cell, line: Line) -> Option<Direction> {
+    let Line(n, dir) = line;
+    if let (Some(Letter::D), Some(Letter::O), Some(Letter::G), Some(Letter::G), Some(Letter::O)) = (
+        get(c),
+        get(c.add_cell(n)),
+        get(c.add_cell(n.mul_scalar(2))),
+        get(c.add_cell(n.mul_scalar(3))),
+        get(c.add_cell(n.mul_scalar(4))),
+    ) {
+        Some(dir)
+    } else {
+        None
+    }
+}
+
+// why while loops are allowed in const fns and not for loops is beyond me
+const fn find() -> Option<(Cell, Direction)> {
+    let mut row = 0;
+    while row < ROWS {
+        let mut col = 0;
+        while col < COLS {
             let c = Cell(row, col);
-            use Letter::*;
-            for line in NEIGHBORS {
-                let Line(n, dir) = line;
-                if let (Some(D), Some(O), Some(G), Some(G), Some(O)) = (
-                    get(c + (n * 0)),
-                    get(c + (n * 1)),
-                    get(c + (n * 2)),
-                    get(c + (n * 3)),
-                    get(c + (n * 4)),
-                ) {
-                    println!("Found DOGGO in {:?}, {:?}", c, dir);
-                    return;
+            let mut idx = 0;
+            while idx < NEIGHBORS.len() {
+                let line = NEIGHBORS[idx];
+                if let Some(dir) = eval(c, line) {
+                    return Some((c, dir));
                 }
+                idx += 1;
             }
+            col += 1;
         }
+        row += 1;
+    }
+    None
+}
+
+fn main() {
+    if let Some((c, dir)) = find() {
+        println!("Found DOGGO in Cell({}, {}), {}", c.0, c.1, dir.str());
     }
 }
 
 #[rustfmt::skip]
 mod grid {
-    use Letter::*;
-
     #[derive(Copy, Clone)]
     pub enum Letter { D, O, G }
 
-    pub const COLS: i32 = 14;
-    pub const ROWS: i32 = 7;
+    use Letter::{D, O, G};
+
+    pub const COLS: i8 = 14;
+    pub const ROWS: i8 = 7;
     // It's col 7, row 2 DownRight
-    pub static NUMBERS: [Letter; (COLS * ROWS) as usize] = [
+    pub const NUMBERS: [Letter; (COLS * ROWS) as usize] = [
     //                       v
     //  0  1  2  3  4  5  6  7  8  9  10 11 12 13
         D, G, O, O, D, D, O, D, G, O, O, D, D, O, // 0
