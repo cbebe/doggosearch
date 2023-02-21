@@ -11,7 +11,7 @@ even found 'DOGGO'. This is an (over-engineered) solution in Rust to find
 ```bash
 git clone https://github.com/cbebe/doggosearch
 cd doggosearch
-cargo run
+cargo run --release
 ```
 
 <details>
@@ -19,6 +19,7 @@ cargo run
 
 It's (1-indexed) column 8, row 3, going down and to the right.
 
-I almost didn't believe that it was actually there until it printed `Found
-DOGGO in Cell(2, 7), DownRight`
+I almost didn't believe that it was actually there until it printed
+`Found DOGGO in Cell(2, 7), DownRight`
+
 </details>

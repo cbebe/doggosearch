@@ -1,4 +1,45 @@
+#![no_std]
+#![no_main]
+
 use grid::{Letter, COLS, NUMBERS, ROWS};
+
+use libc::{c_char, c_int};
+
+#[link(name = "c")]
+extern "C" {
+    fn printf(format: *const c_char, ...) -> c_int;
+    fn exit(code: c_int) -> !;
+}
+
+#[no_mangle]
+extern "C" fn main() -> isize {
+    use core::panic::PanicInfo;
+
+    #[panic_handler]
+    fn panic(_panic: &PanicInfo<'_>) -> ! {
+        unsafe {
+            printf("rust panicked. git gud\n\0".as_ptr() as *const c_char);
+            exit(1);
+        }
+    }
+
+    if let Some((c, dir)) = find() {
+        unsafe {
+            printf(
+                "Found DOGGO in Cell(%d, %d), %s\n\0".as_ptr() as *const c_char,
+                c.0 as c_int,
+                c.1 as c_int,
+                dir.str().as_ptr() as *const c_char,
+            );
+        }
+    } else {
+        unsafe {
+            printf("Could not find DOGGO in the puzzle\n\0".as_ptr() as *const c_char);
+        }
+    }
+
+    0
+}
 
 const fn get(Cell(row, col): Cell) -> Option<Letter> {
     if row >= 0 && col >= 0 && row < ROWS && col < COLS {
@@ -25,14 +66,14 @@ enum Direction {
 impl Direction {
     const fn str(self) -> &'static str {
         match self {
-            Self::Up => "Up",
-            Self::Down => "Down",
-            Self::Left => "Left",
-            Self::Right => "Right",
-            Self::UpLeft => "UpLeft",
-            Self::UpRight => "UpRight",
-            Self::DownLeft => "DownLeft",
-            Self::DownRight => "DownRight",
+            Self::Up => "Up\0",
+            Self::Down => "Down\0",
+            Self::Left => "Left\0",
+            Self::Right => "Right\0",
+            Self::UpLeft => "UpLeft\0",
+            Self::UpRight => "UpRight\0",
+            Self::DownLeft => "DownLeft\0",
+            Self::DownRight => "DownRight\0",
         }
     }
 }
@@ -103,12 +144,6 @@ const fn find() -> Option<(Cell, Direction)> {
         row += 1;
     }
     None
-}
-
-fn main() {
-    if let Some((c, dir)) = find() {
-        println!("Found DOGGO in Cell({}, {}), {}", c.0, c.1, dir.str());
-    }
 }
 
 #[rustfmt::skip]
