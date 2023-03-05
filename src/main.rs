@@ -1,12 +1,10 @@
 #![no_std]
 #![no_main]
 
-use libc::{c_char, c_int};
-
 #[link(name = "c")]
 extern "C" {
-    fn printf(format: *const c_char, ...) -> c_int;
-    fn exit(code: c_int) -> !;
+    fn printf(format: *const i8, ...) -> isize;
+    fn exit(code: i8) -> !;
 }
 
 include!(concat!(env!("OUT_DIR"), "/doggo.rs"));
@@ -18,7 +16,7 @@ extern "C" fn main() -> isize {
     #[panic_handler]
     fn panic(_panic: &PanicInfo<'_>) -> ! {
         unsafe {
-            printf("rust panicked. git gud\n\0".as_ptr() as *const c_char);
+            printf("rust panicked. git gud\n\0".as_ptr().cast::<i8>());
             exit(1);
         }
     }

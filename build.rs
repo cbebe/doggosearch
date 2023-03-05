@@ -16,7 +16,7 @@ fn main() {
 #[inline]
 fn doggo() {{
     unsafe {{
-        printf(\"{}\\n\\0\".as_ptr() as *const c_char);
+        printf(\"{}\\n\\0\".as_ptr().cast::<i8>());
     }}
 }}
 ",
