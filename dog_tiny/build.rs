@@ -1,20 +1,17 @@
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::{env, fs, path::Path, process::Command};
 
-const EXE: &str = "doggosearch";
+const EXE: &str = "dog_tiny";
 
-fn build_tiny_elf() {
+fn main() {
     let out_dir = env::var_os("OUT_DIR").unwrap();
-    let asm_path = Path::new(&out_dir).join(format!("{}.asm", EXE));
-    let exe_path = Path::new(&out_dir).join(EXE);
+    let asm_path = &Path::new(&out_dir).join(format!("{EXE}.asm"));
+    let exe_path = &Path::new(&out_dir).join(EXE);
+    let exe = exe_path.to_str().unwrap();
     let output = dog_lib::get_message();
     // Tiny ELF
     // https://nathanotterness.com/2021/10/tiny_elf_modernized.html
     fs::write(
-        &asm_path,
+        asm_path,
         format!(
             "\
 [bits 64]
@@ -101,32 +98,17 @@ file_end:
     .unwrap();
 
     let output = Command::new("nasm")
-        .args(&["-f", "bin", asm_path.as_str(), "-o", exe_path.as_str()])
+        .args(["-f", "bin", asm_path.to_str().unwrap(), "-o", exe])
         .output()
         .expect("failed to assemble");
-    if !output.status.success() {
-        panic!(
-            "failed to assemble: {}",
-            String::from_utf8(output.stderr).unwrap(),
-        );
-    }
+    assert!(
+        output.status.success(),
+        "failed to assemble: {}",
+        String::from_utf8(output.stderr).unwrap()
+    );
     Command::new("chmod")
-        .args(&["+x", exe_path.as_str()])
+        .args(["+x", exe])
         .output()
         .expect("failed to chmod");
     println!("cargo:rerun-if-changed=build.rs");
-}
-
-fn main() {
-    build_tiny_elf();
-}
-
-trait AsStrExt<'a> {
-    fn as_str(&'a self) -> &'a str;
-}
-
-impl<'a> AsStrExt<'a> for PathBuf {
-    fn as_str(&'a self) -> &'a str {
-        self.as_os_str().clone().to_str().unwrap()
-    }
 }

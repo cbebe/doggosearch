@@ -1,10 +1,11 @@
 [package]
-name = "doggosearch"
+name = "dog_tiny"
 version = "1.0.0"
 edition = "2021"
 license = "MIT"
-description = "Find doggo in word search... in Rust"
-repository = "https://github.com/cbebe/doggosearch"
+description = "Find doggo in word search with tiny Linux binary"
+readme = "../README.md"
+repository = "https://github.com/cbebe/doggosearch/dog_tiny"
 keywords = ["fun", "word-search"]
 categories = ["cli"]
 

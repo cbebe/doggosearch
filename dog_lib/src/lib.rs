@@ -1,8 +1,9 @@
 use crate::grid::{Letter, COLS, PUZZLE, ROWS};
 
+#[must_use]
 pub fn get_message() -> String {
     if let Some((c, dir)) = find() {
-        format!("Found DOGGO in {:?}, {:?}", c, dir)
+        format!("Found DOGGO in {c:?}, {dir:?}")
     } else {
         "Could not find DOGGO in the puzzle".to_owned()
     }

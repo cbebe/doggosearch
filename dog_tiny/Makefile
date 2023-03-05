@@ -1,4 +1,4 @@
-EXE=doggosearch
+EXE=dog_tiny
 
 run: target/release/$(EXE)
 	@./$<
@@ -9,7 +9,4 @@ target/release/$(EXE):
 	@cargo build --release --quiet
 	@\cp ./target/release/build/$(EXE)-*/out/$(EXE) $@
 
-clean:
-	@cargo clean
-
-.PHONY: run exe clean
+.PHONY: run exe

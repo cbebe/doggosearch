@@ -2,6 +2,12 @@
 name = "dog_lib"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Library for finding doggo in word search"
+readme = "../README.md"
+repository = "https://github.com/cbebe/doggosearch/dog_lib"
+keywords = ["fun", "word-search"]
+categories = ["cli"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

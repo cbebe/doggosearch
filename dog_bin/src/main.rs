@@ -4,7 +4,6 @@
 #[link(name = "c")]
 extern "C" {
     fn printf(format: *const i8, ...) -> isize;
-    fn exit(code: i8) -> !;
 }
 
 include!(concat!(env!("OUT_DIR"), "/doggo.rs"));
@@ -16,10 +15,13 @@ extern "C" fn main() -> isize {
     0
 }
 
-use core::panic::PanicInfo;
-
+#[cfg(not(test))]
 #[panic_handler]
-fn panic(_panic: &PanicInfo<'_>) -> ! {
+fn panic(_panic: &core::panic::PanicInfo<'_>) -> ! {
+    #[link(name = "c")]
+    extern "C" {
+        fn exit(code: i8) -> !;
+    }
     unsafe {
         printf("rust panicked. git gud\n\0".as_ptr().cast::<i8>());
         exit(1);
