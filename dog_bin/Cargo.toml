@@ -1,17 +1,15 @@
 [package]
-name = "doggosearch"
-version = "1.0.0"
+name = "dog_bin"
+version = "0.1.0"
 edition = "2021"
-license = "MIT"
-description = "Find doggo in word search... in Rust"
-repository = "https://github.com/cbebe/doggosearch"
-keywords = ["fun", "word-search"]
-categories = ["cli"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 libc = "0.2.139"
+
+[build-dependencies]
+dog_lib = { path = "../dog_lib" }
 
 [profile.dev]
 panic = "abort"

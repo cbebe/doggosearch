@@ -1,43 +1,46 @@
-use grid::{Letter, COLS, NUMBERS, ROWS};
-use std::{env, fs, path::Path};
+use crate::grid::{Letter, COLS, PUZZLE, ROWS};
 
-fn main() {
-    let out_dir = env::var_os("OUT_DIR").unwrap();
-    let dest_path = Path::new(&out_dir).join("doggo.rs");
-    let output = if let Some((c, dir)) = find() {
-        format!("Found DOGGO in Cell({}, {}), {}", c.0, c.1, dir.str())
+pub fn get_message() -> String {
+    if let Some((c, dir)) = find() {
+        format!("Found DOGGO in {:?}, {:?}", c, dir)
     } else {
         "Could not find DOGGO in the puzzle".to_owned()
-    };
-    fs::write(
-        dest_path,
-        format!(
-            "\
-#[inline]
-fn doggo() {{
-    unsafe {{
-        printf(\"{}\\n\\0\".as_ptr().cast::<i8>());
-    }}
-}}
-",
-            output
-        ),
-    )
-    .unwrap();
-    println!("cargo:rerun-if-changed=build.rs");
+    }
+}
+
+// why while loops are allowed in const fns and not for loops is beyond me
+const fn find() -> Option<(Cell, Direction)> {
+    let mut row = 0;
+    while row < ROWS {
+        let mut col = 0;
+        while col < COLS {
+            let c = Cell(row, col);
+            let mut idx = 0;
+            while idx < NEIGHBORS.len() {
+                let line = NEIGHBORS[idx];
+                if let Some(dir) = eval(c, line) {
+                    return Some((c, dir));
+                }
+                idx += 1;
+            }
+            col += 1;
+        }
+        row += 1;
+    }
+    None
 }
 
 const fn get(Cell(row, col): Cell) -> Option<Letter> {
     if row >= 0 && col >= 0 && row < ROWS && col < COLS {
         // row and col are guaranteed to be positive because of the check above
         #[allow(clippy::cast_sign_loss)]
-        Some(NUMBERS[((row * COLS) as usize) + col as usize])
+        Some(PUZZLE[((row * COLS) as usize) + col as usize])
     } else {
         None
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 enum Direction {
     Up,
     Down,
@@ -49,22 +52,7 @@ enum Direction {
     DownRight,
 }
 
-impl Direction {
-    const fn str(self) -> &'static str {
-        match self {
-            Self::Up => "Up",
-            Self::Down => "Down",
-            Self::Left => "Left",
-            Self::Right => "Right",
-            Self::UpLeft => "UpLeft",
-            Self::UpRight => "UpRight",
-            Self::DownLeft => "DownLeft",
-            Self::DownRight => "DownRight",
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Cell(i8, i8);
 
 // const traits are still experimental at the time of writing
@@ -110,28 +98,6 @@ const fn eval(c: Cell, line: Line) -> Option<Direction> {
     }
 }
 
-// why while loops are allowed in const fns and not for loops is beyond me
-const fn find() -> Option<(Cell, Direction)> {
-    let mut row = 0;
-    while row < ROWS {
-        let mut col = 0;
-        while col < COLS {
-            let c = Cell(row, col);
-            let mut idx = 0;
-            while idx < NEIGHBORS.len() {
-                let line = NEIGHBORS[idx];
-                if let Some(dir) = eval(c, line) {
-                    return Some((c, dir));
-                }
-                idx += 1;
-            }
-            col += 1;
-        }
-        row += 1;
-    }
-    None
-}
-
 #[rustfmt::skip]
 mod grid {
     #[derive(Copy, Clone)]
@@ -142,7 +108,7 @@ mod grid {
     pub const COLS: i8 = 14;
     pub const ROWS: i8 = 7;
     // It's col 7, row 2 DownRight
-    pub const NUMBERS: [Letter; (COLS * ROWS) as usize] = [
+    pub const PUZZLE: [Letter; (COLS * ROWS) as usize] = [
     //                       v
     //  0  1  2  3  4  5  6  7  8  9  10 11 12 13
         D, G, O, O, D, D, O, D, G, O, O, D, D, O, // 0

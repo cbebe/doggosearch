@@ -11,17 +11,17 @@ include!(concat!(env!("OUT_DIR"), "/doggo.rs"));
 
 #[no_mangle]
 extern "C" fn main() -> isize {
-    use core::panic::PanicInfo;
-
-    #[panic_handler]
-    fn panic(_panic: &PanicInfo<'_>) -> ! {
-        unsafe {
-            printf("rust panicked. git gud\n\0".as_ptr().cast::<i8>());
-            exit(1);
-        }
-    }
-
     doggo();
 
     0
+}
+
+use core::panic::PanicInfo;
+
+#[panic_handler]
+fn panic(_panic: &PanicInfo<'_>) -> ! {
+    unsafe {
+        printf("rust panicked. git gud\n\0".as_ptr().cast::<i8>());
+        exit(1);
+    }
 }

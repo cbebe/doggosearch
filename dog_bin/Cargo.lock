@@ -3,11 +3,16 @@
 version = 3
 
 [[package]]
-name = "doggosearch"
-version = "1.0.0"
+name = "dog_bin"
+version = "0.1.0"
 dependencies = [
+ "dog_lib",
  "libc",
 ]
+
+[[package]]
+name = "dog_lib"
+version = "0.1.0"
 
 [[package]]
 name = "libc"
